@@ -1,0 +1,80 @@
+Springboot mvn&docker集成
+
+目的
+将springboot构建的微服务，通过docker的mvn插件打包成docker image
+
+方法1：通过pom.xml生成docker image
+在pom中添加docker插件信息
+<plugin>
+    <groupId>com.spotify</groupId>
+    <artifactId>docker-maven-plugin</artifactId>
+    <version>VERSION GOES HERE</version>
+    <configuration>
+    <imageName>example</imageName>
+    <baseImage>java</baseImage>
+    <entryPoint>["java", "-jar", "/${project.build.finalName}.jar"]</entryPoint>
+    <!-- copy the service's jar file from target into the root directory of the image --> 
+    <resources>
+        <resource>
+            <targetPath>/</targetPath>
+            <directory>${project.build.directory}</directory>
+            <include>${project.build.finalName}.jar</include>
+        </resource>
+    </resources>
+    </configuration>
+</plugin>
+执行mvn clean package docker:build
+如果出现 No plugin found for prefix 'docker' in the current project and in the plugin groups
+的错误，则是因为mvn conf/setting.xml中缺少pluginGroups配置，加上配置
+<pluginGroups>
+    <pluginGroup>com.spotify</pluginGroup>
+</pluginGroups>
+继续执行mvn clean package docker:build
+
+出现错误：
+Plugin com.spotify:docker-maven-plugin:
+VERSION GOES HERE or one of its dependencies could not be resolved: 
+Failure to find com.spotify:docker-maven-plugin:jar:
+VERSION GOES HERE in http://maven.aliyun.com/nexus/content/groups/public/ was cached in the local repository, 
+resolution will not be reattempted until th
+这个是因为上述docker插件未指明版本，<version>VERSION GOES HERE</version>是不可用的
+<version>1.0.0</version>我指定了1.0.0版本的编译插件
+接下来检查镜像的正确性：
+由于插件中指定的image名字是example,所以生成的镜像名字是他。
+本地执行：liu-zhch$ docker run -d -p 8081:8081 example --name firstimage 启动镜像
+我添加了一个springboot的空工程，实现了一个controller如下，端口8081
+package com.lzc.firstimage.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class TestController {
+
+	@RequestMapping("/sayhello")
+	public String sayHello() {
+		return "hello";
+	}
+	
+}
+
+镜像启动之后在浏览器中访问http://localhost:8081/sayhello 浏览器显示hello，镜像打包成功
+
+现在将这镜像从关闭移除，使用kubernets进行管理
+1，移除镜像
+2，创建rc
+3，创建service
+4，验证是否启动成功
+
+
+
+
+dao pull registry
+ 
+docker run -d -p 5000:5000 --restart=always -h registry \
+ --name registry \
+ -v /Users/liu-zhch/data/registry:/tmp/registry \
+ registry
+
+
+
