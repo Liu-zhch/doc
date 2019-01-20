@@ -1,0 +1,21 @@
+docker 中运行jenkins
+
+docker search jenkins
+docker pull jenkins
+docker run -d --name jenkins -p 8081:8080 -v /Users/liu-zhch/Desktop/tool/jenkins:/Users/liu-zhch/Desktop/tool/jenkins jenkins   
+
+-d 是后台启用jenkins服务
+-p 是端口映射 在外部访问是主机ip+8081/jenkins
+-v 是数据挂载
+--name 是为容器命名
+
+启动后需要数据初始密码，密码路径在/Users/liu-zhch/Desktop/tool/jenkins/secrets/initialAdminPassword 文件中
+
+挂载路径：
+/Users/liu-zhch/Desktop/tool/jenkins
+
+docker 服务启动：
+docker start imagename
+
+docker 服务停止:
+docker stop imagename
